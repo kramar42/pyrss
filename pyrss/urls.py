@@ -1,3 +1,4 @@
+
 from django.conf.urls.defaults import *
 
 # Uncomment the next two lines to enable the admin:
@@ -5,7 +6,11 @@ from django.conf.urls.defaults import *
 # admin.autodiscover()
 
 urlpatterns = patterns('',
-   url(r'^user/$', 'rss.views.index'),
-   url(r'^user/(?P<user_id>\d+)/$', 'rss.views.detail'),
-   url(r'^feed/(?P<feed_id>\d+)/$', 'rss.views.feed'),
+    url(r'^login/$', 'rss.views.login_view'),
+    url(r'^register/$', 'rss.views.register_view'),
+    url(r'^logout/$', 'rss.views.logout_view'),
+
+    url(r'^feeds/$', 'rss.views.feeds'),
+    url(r'^add_feed/$', 'rss.views.add_feed'),
+    url(r'^feed/(?P<feed_id>\d+)/$', 'rss.views.feed'),
 )

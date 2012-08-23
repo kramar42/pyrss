@@ -1,11 +1,9 @@
 
-# Sublime project files
-pyrss.sublime-project
-pyrss.sublime-workspace
+# All python compiled files
+*.pyc
 
 # Rss feeds
-cnn.rss
-cnn_latest.rss
+*.rss
 
 # Django's rss feeds
 pyrss/feeds/*

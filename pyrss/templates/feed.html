@@ -1,12 +1,22 @@
 
-<p>{{title}} feed.</p>
+{% extends "base.html" %}
 
-{% if entries %}
+{% block content %}
+	{% if title == 'false' %}
+	There is no such feed
+	{% else %}
+
+	<p>{{title}} feed.</p>
+
+	{% if entries %}
 	<ul>
-	{% for entrie in entries %}
-	<li>{{entrie.title}}</a></li>
-	{% endfor %}
+		{% for entrie in entries %}
+		<li>{{entrie.title}}</a></li>
+		{% endfor %}
 	</ul>
-{% else %}
+	{% else %}
 	<p>No entries are avaliable.</p>
-{% endif %}
+	{% endif %}
+
+	{% endif %}
+{% endblock %}

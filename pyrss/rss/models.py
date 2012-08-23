@@ -1,15 +1,16 @@
+
 from django.db import models
-
-
-class User(models.Model):
-    name = models.CharField(max_length=20)
-    password = models.CharField(max_length=20)
-
-    def __unicode__(self):
-        return self.name
+from django.contrib.auth.models import User
 
 
 class Feed(models.Model):
     title = models.CharField(max_length=20)
-    feed = models.FileField(upload_to='feeds/%d')
+
+    url = models.CharField(max_length=100)
+    last_changed = models.DateField()
+
+    feed = models.FileField(upload_to='feeds')
     user = models.ForeignKey(User)
+
+    def __unicode__(self):
+        return self.title
