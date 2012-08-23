@@ -1,0 +1,12 @@
+
+<p>User: {{user.name}}</p>
+
+{% if feeds %}
+	<ul>
+	{% for feed in feeds %}
+	<li><a href="/feed/{{feed.id}}/">{{feed.title}}</a></li>
+	{% endfor %}
+	</ul>
+{% else %}
+	<p>No feeds are avaliable.</p>
+{% endif %}

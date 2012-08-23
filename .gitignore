@@ -1,2 +1,14 @@
+
+# Sublime project files
 pyrss.sublime-project
 pyrss.sublime-workspace
+
+# Rss feeds
+cnn.rss
+cnn_latest.rss
+
+# Django's rss feeds
+pyrss/feeds/*
+
+# sqlite3 database
+pyrss/pyrss
