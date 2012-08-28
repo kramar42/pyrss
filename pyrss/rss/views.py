@@ -1,16 +1,19 @@
 
-from django.shortcuts import render_to_response, redirect
+from django.shortcuts import HttpResponse, render_to_response, redirect
+
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
-from django.core.files import File
-from datetime import datetime
 
-from rss.models import Feed
+from django.core.files import File
 
 from urllib import urlretrieve
-from os import remove
+from datetime import datetime
+
 import feedparser
+import os
+
+from rss.models import Feed, Entry
 
 
 def login_view(request):
@@ -44,7 +47,7 @@ def register_view(request):
         psk2 = request.POST['psk2']
 
         if psk1 == psk2:
-            user = User.objects.create_user(name, '', psk1)
+            User.objects.create_user(name, '', psk1)
             user = authenticate(username=name, password=psk1)
             login(request, user)
             return redirect('/feeds')
@@ -69,36 +72,94 @@ def feeds(request):
 
 @login_required
 def add_feed(request):
+    """
+    Trying to get URL from post.
+    If we couldn't - redirecting back to add_feed.html page.
+
+    Trying to get Feed object with such URL.
+    If we coult - redirecting to message page.
+
+    Then calculate Feed's
+        Title, URL, Time, Feed, User fields
+    and create Feed object.
+
+
+    """
+
     try:
         url = request.POST['url']
-        rss_name = url.split('/')[-1]
-        urlretrieve(url, rss_name)
-
-        feed = feedparser.parse(rss_name)
-
-        feed_file = open(rss_name)
-        feed_file = File(feed_file)
-
-        feed = Feed(title=feed.feed.title, url=url, \
-            last_changed=datetime.now(), \
-            feed=feed_file, user=request.user)
-        feed.save()
-        remove(rss_name)
-
-        return redirect('/feeds')
     except KeyError:
         return render_to_response('add_feed.html')
+
+    try:
+        Feed.objects.get(url=url)
+        return render_to_response('message.html', {'message': 'There is such feed'})
+    except Feed.DoesNotExist:
+        pass
+
+    feed = feedparser.parse(url)
+
+    # Title field in Feed
+    title = feed.feed.title
+
+    # Time field in Feed
+    time = datetime.now()
+
+    # create Feed and save it
+    feed_obj = Feed(title=title, url=url, time=time, \
+        user=request.user)
+    feed_obj.save()
+
+    for entry in feed.entries:
+        try:
+            Entry.objects.get(title=entry.title)
+            continue
+        except Entry.DoesNotExist:
+            pass
+
+        # entry name to save
+        entry_name = entry.title + '.html'
+        urlretrieve(entry.link, entry_name)
+
+        # Entry file field
+        entry_file = open(entry_name)
+        entry_file = File(entry_file)
+
+        # create and save entry object
+        entry_obj = Entry(title=entry.title, \
+            description=entry.description, \
+            entry=entry_file, feed=feed_obj)
+        entry_obj.save()
+
+        # remove tmp entry file
+        os.remove(entry_name)
+
+    return redirect('/feeds')
 
 
 @login_required
 def feed(request, feed_id):
     try:
         feed = Feed.objects.get(user=request.user, id=feed_id)
-
-        feed = feedparser.parse(feed.feed)
-        title = feed.feed.title
-        entries = feed.entries
+        title = feed.title
+        entries = Entry.objects.filter(feed=feed)
     except:
         title = entries = 'false'
 
     return render_to_response('feed.html', {'title': title, 'entries': entries})
+
+
+@login_required
+def entry(request, entry_id):
+    try:
+        entry = Entry.objects.get(id=entry_id)
+        entry = entry.entry.read()
+    except:
+        entry = 'false'
+
+    return HttpResponse(entry)
+
+
+@login_required
+def update_feed(request, feed_id):
+    pass

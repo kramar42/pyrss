@@ -2,11 +2,8 @@
 # All python compiled files
 *.pyc
 
-# Rss feeds
-*.rss
-
-# Django's rss feeds
-pyrss/feeds/*
+# Django's entries
+pyrss/entries/*
 
 # sqlite3 database
 pyrss/pyrss

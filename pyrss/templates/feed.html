@@ -10,8 +10,8 @@
 
 	{% if entries %}
 	<ul>
-		{% for entrie in entries %}
-		<li>{{entrie.title}}</a></li>
+		{% for entry in entries %}
+		<li><a href="/entry/{{ entry.id }}">{{entry.title}}</a></li>
 		{% endfor %}
 	</ul>
 	{% else %}
