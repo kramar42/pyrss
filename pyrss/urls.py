@@ -10,13 +10,16 @@ urlpatterns = patterns('',
 
     # List of all feeds by User
     url(r'^feeds/$', 'rss.views.feeds'),
+    url(r'^feeds/page(?P<page>\d+)/$', 'rss.views.feeds'),
+
     url(r'^add_feed/$', 'rss.views.add_feed'),
 
     # Views, that display feed/entry
-    url(r'^feed/(?P<feed_id>\d+)/$', 'rss.views.feed'),
-    url(r'^entry/(?P<entry_id>\d+)/$', 'rss.views.entry'),
+    url(r'^feed(?P<feed_id>\d+)/$', 'rss.views.feed'),
+    url(r'^feed(?P<feed_id>\d+)/page(?P<page>\d+)/$', 'rss.views.feed'),
+    url(r'^entry(?P<entry_id>\d+)/$', 'rss.views.entry'),
 
-    url(r'^update_feed/(?P<feed_id>\d+)/$', 'rss.views.update_feed'),
-    url(r'^modify_feed/(?P<feed_id>\d+)/$', 'rss.views.modify_feed'),
-    url(r'^delete_feed/(?P<feed_id>\d+)/$', 'rss.views.delete_feed'),
+    url(r'^update_feed_(?P<feed_id>\d+)/$', 'rss.views.update_feed'),
+    url(r'^modify_feed_(?P<feed_id>\d+)/$', 'rss.views.modify_feed'),
+    url(r'^delete_feed_(?P<feed_id>\d+)/$', 'rss.views.delete_feed'),
 )

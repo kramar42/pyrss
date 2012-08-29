@@ -7,13 +7,19 @@
 	{% if entries %}
 	<ul>
 		{% for entry in entries %}
-		<li><a href="/entry/{{ entry.id }}">{{entry.title}}</a></li>
+		<li><a href="/entry{{ entry.id }}">{{entry.title}}</a></li>
 		{{ entry.description }}
 		{% endfor %}
+
+		<br>
+		{% if prev != 'none' %}
+		<a href="/feed{{ feed_id }}/page{{ prev }}">Previous</a>
+		{% endif %}
+		{% if next != 'none' %}
+		<a href="/feed{{ feed_id }}/page{{ next }}">Next</a>
+		{% endif %}
 	</ul>
 	{% else %}
 	<p>No entries are avaliable.</p>
-	{% endif %}
-
 	{% endif %}
 {% endblock %}

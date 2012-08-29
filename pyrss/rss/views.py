@@ -102,7 +102,7 @@ def logout_view(request):
 
 
 @login_required
-def feeds(request):
+def feeds(request, page='1'):
     """
     Feeds view.
     Using feeds.html template.
@@ -113,7 +113,19 @@ def feeds(request):
     __time_update(request.user)
 
     feeds = Feed.objects.filter(user=request.user)
-    return render_to_response('feeds.html', {'feeds': feeds})
+
+    bottom = (int(page) - 1) * 5
+    top = bottom + 5
+
+    prev = 'none' if page == '1' else \
+           int(page) - 1
+
+    next = 'none' if len(feeds[top: top + 1]) == 0 else \
+           int(page) + 1
+
+    return render_to_response('feeds.html', {
+        'feeds': feeds[bottom: top],
+        'prev': prev, 'next': next})
 
 
 @login_required
@@ -178,7 +190,7 @@ def add_feed(request):
 
 
 @login_required
-def feed(request, feed_id):
+def feed(request, feed_id, page='1'):
     """
     Feed view.
     Using feed.html template.
@@ -196,7 +208,19 @@ def feed(request, feed_id):
         return render_to_response('message.html', {'message': \
             'There is no such feed.'})
 
-    return render_to_response('feed.html', {'title': title, 'entries': entries})
+    bottom = (int(page) - 1) * 5
+    top = bottom + 5
+
+    prev = 'none' if page == '1' else \
+           int(page) - 1
+
+    next = 'none' if len(entries[top: top + 1]) == 0 else \
+           int(page) + 1
+
+    return render_to_response('feed.html', {
+        'feed_id': feed_id,
+        'title': title, 'entries': entries[bottom: top],
+        'prev': prev, 'next': next})
 
 
 @login_required
