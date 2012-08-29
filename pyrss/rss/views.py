@@ -17,6 +17,16 @@ from rss.models import Feed, Entry
 
 
 def login_view(request):
+    """
+    Login view.
+    Using login.html template.
+
+    Trying to get from GET login parametrs and login.
+    Then authenticate, login and redirect to /feeds.
+
+    If there is no GET - display simple login page.
+    """
+
     try:
         # If we were redirected from another page
         next = request.GET['next']
@@ -47,6 +57,13 @@ def login_view(request):
 
 
 def register_view(request):
+    """
+    Register view.
+    Using register.html template.
+
+    Working the same as login_view.
+    """
+
     try:
         name = request.POST['username']
         psk1 = request.POST['psk1']
@@ -73,12 +90,26 @@ def register_view(request):
 
 @login_required
 def logout_view(request):
+    """
+    Logout view.
+    Simple log's user out.
+
+    Redirects to /login.
+    """
+
     logout(request)
     return redirect('/login')
 
 
 @login_required
 def feeds(request):
+    """
+    Feeds view.
+    Using feeds.html template.
+
+    Displaying all feeds.
+    """
+
     __time_update(request.user)
 
     feeds = Feed.objects.filter(user=request.user)
@@ -88,6 +119,9 @@ def feeds(request):
 @login_required
 def add_feed(request):
     """
+    Add feed view.
+    Using add_feed.html temlate.
+
     Trying to get URL from post.
     If we couldn't - redirecting back to add_feed.html page.
 
@@ -99,7 +133,10 @@ def add_feed(request):
     and create (& save) Feed object.
 
     Add entries.
+
+    Redirects to /feeds.
     """
+
     __time_update(request.user)
 
     try:
@@ -142,6 +179,13 @@ def add_feed(request):
 
 @login_required
 def feed(request, feed_id):
+    """
+    Feed view.
+    Using feed.html template.
+
+    Displaying feed's entries.
+    """
+
     __time_update(request.user)
 
     try:
@@ -149,13 +193,21 @@ def feed(request, feed_id):
         title = feed.title
         entries = Entry.objects.filter(feed=feed)
     except:
-        title = entries = 'false'
+        return render_to_response('message.html', {'message': \
+            'There is no such feed.'})
 
     return render_to_response('feed.html', {'title': title, 'entries': entries})
 
 
 @login_required
 def entry(request, entry_id):
+    """
+    Entry view.
+    Using entry.html template.
+
+    Displaying entry's content using local file.
+    """
+
     __time_update(request.user)
 
     try:
@@ -165,15 +217,26 @@ def entry(request, entry_id):
         if feed.user == request.user:
             entry = entry.entry.read()
         else:
-            entry = 'false'
+            return render_to_response('message.html', {'message': \
+                'There is no such entry.'})
     except:
-        entry = 'false'
+        return render_to_response('message.html', {'message': \
+            'Error opening entry file! Please, reload feed.'})
 
     return HttpResponse(entry)
 
 
 @login_required
 def update_feed(request, feed_id):
+    """
+    Update feed view.
+    Using update_feed.html template.
+
+    Manually updates feed entires.
+
+    Redirects to /feeds.
+    """
+
     __time_update(request.user)
 
     try:
@@ -188,6 +251,15 @@ def update_feed(request, feed_id):
 
 @login_required
 def modify_feed(request, feed_id):
+    """
+    Modify feed view.
+    Using modify_feed.html temlpate.
+
+    You can modify feed object using simple form.
+
+    Redirects to /feeds.
+    """
+
     __time_update(request.user)
 
     try:
@@ -213,6 +285,15 @@ def modify_feed(request, feed_id):
 
 @login_required
 def delete_feed(request, feed_id):
+    """
+    Delete feed view.
+    Using delete_feed.html template.
+
+    Simple deletes feed and all entry objects.
+
+    Redirects to /feeds.
+    """
+
     __time_update(request.user)
 
     try:
@@ -224,6 +305,11 @@ def delete_feed(request, feed_id):
 
 
 def __update_feed(feed_obj):
+    """
+    Private update feed func.
+    Manually updates feed.
+    """
+
     url = feed_obj.url
     feed = feedparser.parse(url)
 
@@ -250,6 +336,11 @@ def __update_feed(feed_obj):
 
 
 def __time_update(user):
+    """
+    Private time update func.
+    Updates feed after some time.
+    """
+
     feeds = Feed.objects.filter(user=user)
 
     for feed in feeds:
@@ -259,6 +350,14 @@ def __time_update(user):
 
 
 def __add_entries(entries, feed):
+    """
+    Private add entries func.
+
+    Adds entries to a feed without repeating them.
+    Don't downloads entry, if there is entry with such title
+        from another feed. Instead it uses that entry.
+    """
+
     for entry in entries:
         try:
             # If there is entry with such title in this feed
