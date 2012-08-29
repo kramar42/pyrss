@@ -1,13 +1,44 @@
 
 {% extends "base.html" %}
 
+{% block username %} {{ username }} {% endblock %}
+
+{% block sidebar %}
+{% endblock %}
+
 {% block content %}
 	<form method="post" action=".">
-		<input type="text" name="title" size="40" value="{{ feed.title }}"> <br>
-		<input type="text" name="url" size="40" value="{{ feed.url }}"> <br>
-		Time: {{ feed.time }} <br>
-		User: {{ feed.user }} <br>
-
-		<input type="submit" value="Save">
+		<div class="row_fluid">
+			<div class="span2">
+				<h4>Title:</h4>
+			</div>
+			<div class="span5">
+				<input type="text" name="title" size="70" value="{{ feed.title }}">
+			</div>
+		</div>
+		<br>
+		<br>
+		<div class="row_fluid">
+			<div class="span2">
+				<h4>URL:</h4>
+			</div>
+			<div class="span5">
+				<input type="text" name="url" size="70" value="{{ feed.url }}">
+			</div>
+		</div>
+		<br>
+		<br>
+		<div class="row_fluid">
+			<div class="span2">
+				<h4>Time:</h4>
+			</div>
+			<div class="span4">
+				{{ feed.time }}
+			</div>
+		</div>
+		<br>
+		<br>
+		<br>
+		<input type="submit" value="Save" class="btn btn-primary btn-large">
 	</form>
 {% endblock %}

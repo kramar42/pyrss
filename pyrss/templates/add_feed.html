@@ -1,10 +1,16 @@
 
 {% extends "base.html" %}
 
+{% block username %} {{ username }} {% endblock %}
+
+{% block sidebar %}
+{% endblock %}
+
 {% block content %}
 <form method="post" action=".">
-	RSS URL:
+	<h4>RSS URL:</h4>
 	<input type="text" name="url">
-	<input type="submit" value="add">
+	<br>
+	<input type="submit" value="Add" class="btn btn-primary">
 </form>
 {% endblock %}

@@ -1,0 +1,32 @@
+
+{% extends "base.html" %}
+
+{% block username %} {{ username }} {% endblock %}
+
+{% block sidebar %}
+{% endblock %}
+
+{% block content %}
+{% if result %}
+	{% for entry in result %}
+		<div class="row-fluid">
+            <div class="span9">
+              <h4>{{ entry.title }}</h4>
+              <p>{{ entry.description }}</p>
+              <p><a class="btn" href="/entry{{ entry.id }}">Read &raquo;</a></p>
+            </div><!--/span-->
+        </div><!--/row-->
+	{% endfor %}
+{% else %}
+	<form method="get" action=".">
+		<div class="raw_fluid">
+			<div class="span4">
+				<input type="text" name="q">
+			</div>
+			<div class="span2">
+				<input type="submit" value="Search" class="btn btn-primary btn-success"/>
+			</div>
+		</div>
+	</form>
+	{% endif %}
+{% endblock %}

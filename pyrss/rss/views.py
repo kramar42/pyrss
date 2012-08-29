@@ -1,5 +1,6 @@
 
 from django.shortcuts import HttpResponse, render_to_response, redirect
+#from django.shortcuts import render
 
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
@@ -14,6 +15,7 @@ import feedparser
 import os
 
 from rss.models import Feed, Entry
+#from rss.forms import LoginForm
 
 
 def login_view(request):
@@ -78,8 +80,7 @@ def register_view(request):
 
                 return redirect('/feeds')
             except:
-                return render_to_response('message.html', {'message': \
-                    'There are user with such name. Choose another.'})
+                return render_to_response('register.html', {'result': 'user'})
         else:
             # Passwords veren't equal
             return render_to_response('register.html', {'result': 'false'})
@@ -114,16 +115,18 @@ def feeds(request, page='1'):
 
     feeds = Feed.objects.filter(user=request.user)
 
-    bottom = (int(page) - 1) * 5
-    top = bottom + 5
+    bottom = (int(page) - 1) * 10
+    top = bottom + 10
 
     prev = 'none' if page == '1' else \
+           'none' if len(feeds[bottom - 1: bottom]) == 0 else \
            int(page) - 1
 
     next = 'none' if len(feeds[top: top + 1]) == 0 else \
            int(page) + 1
 
     return render_to_response('feeds.html', {
+        'username': request.user.username,
         'feeds': feeds[bottom: top],
         'prev': prev, 'next': next})
 
@@ -156,12 +159,14 @@ def add_feed(request):
         if not url.startswith('http://'):
             url = 'http://' + url
     except KeyError:
-        return render_to_response('add_feed.html')
+        return render_to_response('add_feed.html',
+            {'username': request.user.username})
 
     try:
         Feed.objects.get(url=url, user=request.user)
-        return render_to_response('message.html', {'message': \
-            'There is already such feed'})
+        return render_to_response('message.html', {'message':
+            'There is already such feed',
+            'back': '/feeds'})
     except Feed.DoesNotExist:
         pass
 
@@ -173,14 +178,15 @@ def add_feed(request):
         title = feed.feed.title
     except AttributeError:
         # Display warning message
-        return render_to_response('message.html', {'message': \
-            'Wrong feed URL or connection Error.'})
+        return render_to_response('message.html', {'message':
+            'Wrong feed URL or connection Error.',
+            'back': '/add_feed'})
 
     # Time field in Feed
     time = datetime.now()
 
     # Create Feed and save it
-    feed_obj = Feed(title=title, url=url, time=time, \
+    feed_obj = Feed(title=title, url=url, time=time,
         user=request.user)
     feed_obj.save()
 
@@ -205,20 +211,25 @@ def feed(request, feed_id, page='1'):
         title = feed.title
         entries = Entry.objects.filter(feed=feed)
     except:
-        return render_to_response('message.html', {'message': \
-            'There is no such feed.'})
+        return render_to_response('message.html', {'message':
+            'There is no such feed.',
+            'back': '/feeds'})
 
     bottom = (int(page) - 1) * 5
     top = bottom + 5
 
     prev = 'none' if page == '1' else \
+           'none' if len(entries[bottom - 1: bottom]) == 0 else \
            int(page) - 1
 
     next = 'none' if len(entries[top: top + 1]) == 0 else \
            int(page) + 1
 
+    feeds = Feed.objects.filter(user=request.user)
+
     return render_to_response('feed.html', {
-        'feed_id': feed_id,
+        'username': request.user.username,
+        'feed_id': int(feed_id), 'feeds': feeds,
         'title': title, 'entries': entries[bottom: top],
         'prev': prev, 'next': next})
 
@@ -241,11 +252,13 @@ def entry(request, entry_id):
         if feed.user == request.user:
             entry = entry.entry.read()
         else:
-            return render_to_response('message.html', {'message': \
-                'There is no such entry.'})
+            return render_to_response('message.html', {'message':
+                'There is no such entry.',
+                'back': '/feeds'})
     except:
-        return render_to_response('message.html', {'message': \
-            'Error opening entry file! Please, reload feed.'})
+        return render_to_response('message.html', {'message':
+            'Error opening entry file! Please, reload feed.',
+            'back': '/feeds'})
 
     return HttpResponse(entry)
 
@@ -266,8 +279,9 @@ def update_feed(request, feed_id):
     try:
         feed = Feed.objects.get(id=feed_id, user=request.user)
     except Feed.DoesNotExist:
-        return render_to_response('message.html', \
-            {'message': 'There is no such feed.'})
+        return render_to_response('message.html',
+            {'message': 'There is no such feed.',
+            'back': '/feeds'})
 
     __update_feed(feed)
     return redirect('/feeds')
@@ -289,8 +303,9 @@ def modify_feed(request, feed_id):
     try:
         feed = Feed.objects.get(id=feed_id, user=request.user)
     except KeyError:
-        return render_to_response('message.html', \
-            {'message': 'There is no such feed.'})
+        return render_to_response('message.html',
+            {'message': 'There is no such feed.',
+            'back': '/feeds'})
 
     # Try to get data from form & update feed
     try:
@@ -304,7 +319,9 @@ def modify_feed(request, feed_id):
         return redirect('/feeds')
     # Or display new form, filled with current feed values
     except KeyError:
-        return render_to_response('modify_feed.html', {'feed': feed})
+        return render_to_response('modify_feed.html',
+            {'feed': feed,
+            'username': request.user.username})
 
 
 @login_required
@@ -326,6 +343,27 @@ def delete_feed(request, feed_id):
         pass
 
     return redirect('/feeds')
+
+
+@login_required
+def search(request):
+    """
+    Search view.
+    Using search.html temlplate.
+
+    Simple search using filter.
+    """
+
+    try:
+        q = request.GET['q']
+        result = Entry.objects.filter(title__contains=q)
+
+        return render_to_response('search.html',
+            {'result': result,
+            'username': request.user.username})
+    except KeyError:
+        return render_to_response('search.html',
+            {'username': request.user.username})
 
 
 def __update_feed(feed_obj):
@@ -401,8 +439,8 @@ def __add_entries(entries, feed):
         if len(e) != 0:
             e = e[0]
             # Copy all containing
-            entry_obj = Entry(title=e.title, \
-                description=e.description, \
+            entry_obj = Entry(title=e.title,
+                description=e.description,
                 entry=e.entry, feed=feed)
             entry_obj.save()
         # Or create new Entry from scratch
@@ -415,8 +453,8 @@ def __add_entries(entries, feed):
                 entry_file = open(entry_name)
                 entry_file = File(entry_file)
 
-                entry_obj = Entry(title=entry.title, \
-                    description=entry.description, \
+                entry_obj = Entry(title=entry.title,
+                    description=entry.description,
                     entry=entry_file, feed=feed)
                 entry_obj.save()
 

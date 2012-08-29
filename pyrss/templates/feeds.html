@@ -1,26 +1,52 @@
 
 {% extends "base.html" %}
 
-{% block content %}
-	{% if feeds %}
-	<ul>
-		{% for feed in feeds %}
-		<li><a href="/feed{{ feed.id }}/">{{feed.title}}</a>
-			<a href="/update_feed_{{ feed.id }}/">Update</a>
-			<a href="/modify_feed_{{ feed.id }}/">Modify</a>
-			<a href="/delete_feed_{{ feed.id }}/">Delete</a>
-		</li>
-		{% endfor %}
+	{% block username %} {{username}} {% endblock %}
+	{% block sidebar %}
+	{% endblock %}
 
+	{% block content %}
+	{% if feeds %}
+		{% for feed in feeds %}
+		<div class="row_fluid">
+			<div class="span7">
+				<li><a href="/feed{{ feed.id }}/">{{feed.title}}<i class="icon-chevron-right"></i></a></li>
+			</div>
+			<div class="span1">
+				<a href="/update_feed_{{ feed.id }}/">Refresh</a>
+			</div>
+			<div class="span1">
+				<a href="/modify_feed_{{ feed.id }}/">Modify</a>
+			</div>
+			<div class="span1">
+				<a href="/delete_feed_{{ feed.id }}/">Delete</a>
+			</div>
+		</div>
 		<br>
-		{% if prev != 'none' %}
-		<a href="/feeds/page{{ prev }}">Previous</a>
-		{% endif %}
-		{% if next != 'none' %}
-		<a href="/feeds/page{{ next }}">Next</a>
-		{% endif %}
-	</ul>
+		<br>
+		{% endfor %}
 	{% else %}
-	<p>No feeds are avaliable.</p>
+	    <h5>No feeds are avaliable.</h5>
 	{% endif %}
+	{% endblock %}
+
+{% block footer %}
+<br>
+<br>
+	<div class="row-fluid">
+		<div class="span4">
+		</div>
+		<div class="span4">
+			{% if prev != 'none' %}
+			<a href="/feed{{ feed_id }}/page{{ prev }}" 
+			class="btn btn-primary btn-large">Previous</a>
+			{% endif %}
+		</div>
+		<div class="span2">
+			{% if next != 'none' %}
+			<a href="/feed{{ feed_id }}/page{{ next }}" 
+			class="btn btn-primary btn-large">Next</a>
+			{% endif %}
+		</div>
+	</div>
 {% endblock %}

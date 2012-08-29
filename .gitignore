@@ -2,6 +2,9 @@
 # All python compiled files
 *.pyc
 
+# All entries
+pyrss/entries/*
+
 # Django's entries
 pyrss/entries/*
 

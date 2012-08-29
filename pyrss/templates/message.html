@@ -1,6 +1,14 @@
 
 {% extends "base.html" %}
 
+{% block hat %}
+{% endblock %}
+
+{% block sidebar %}
+{% endblock %}
+
 {% block content %}
-	{{ message }}
+	<h4>{{ message }}</h4>
+	<br>
+	<a href="{{back}}" class="btn btn-danger btn-large">Back</a>
 {% endblock %}

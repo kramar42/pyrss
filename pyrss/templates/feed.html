@@ -1,25 +1,55 @@
 
 {% extends "base.html" %}
 
+{% block username %} {{ username }} {% endblock %}
+
+{% block nav %}
+	{% for feed in feeds %}
+	{% if feed.id == feed_id %}
+	    <li class="active"><a href="/feed{{ feed.id }}/">{{feed.title}}<i class="icon-chevron-right"></i></a></li>
+	    {% else %}
+        <li><a href="/feed{{ feed.id }}/">{{feed.title}}<i class="icon-chevron-right"></i></a></li>
+        {% endif %}
+    {% endfor %}
+{% endblock %}
+
 {% block content %}
-	<p>{{title}} feed.</p>
-
 	{% if entries %}
-	<ul>
 		{% for entry in entries %}
-		<li><a href="/entry{{ entry.id }}">{{entry.title}}</a></li>
-		{{ entry.description }}
+		<div class="row-fluid">
+            <div class="span9">
+              <h4>{{ entry.title }}</h4>
+              <p>{{ entry.description }}</p>
+              <p><a class="btn" href="/entry{{ entry.id }}">Read &raquo;</a></p>
+            </div><!--/span-->
+        </div><!--/row-->
 		{% endfor %}
-
-		<br>
-		{% if prev != 'none' %}
-		<a href="/feed{{ feed_id }}/page{{ prev }}">Previous</a>
-		{% endif %}
-		{% if next != 'none' %}
-		<a href="/feed{{ feed_id }}/page{{ next }}">Next</a>
-		{% endif %}
-	</ul>
 	{% else %}
-	<p>No entries are avaliable.</p>
+	    <div class="row-fluid">
+	    	<div class="span9">
+	    		<h4>No entries are available.</h4>
+	    	</div>
+	    </div>
 	{% endif %}
+{% endblock %}
+
+{% block footer %}
+<br>
+<br>
+	<div class="row-fluid">
+		<div class="span4">
+		</div>
+		<div class="span4">
+			{% if prev != 'none' %}
+			<a href="/feed{{ feed_id }}/page{{ prev }}" 
+			class="btn btn-primary btn-large">Previous</a>
+			{% endif %}
+		</div>
+		<div class="span2">
+			{% if next != 'none' %}
+			<a href="/feed{{ feed_id }}/page{{ next }}" 
+			class="btn btn-primary btn-large">Next</a>
+			{% endif %}
+		</div>
+	</div>
 {% endblock %}

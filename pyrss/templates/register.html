@@ -1,23 +1,39 @@
 
-{% if result == 'false' %}
-Passwords didn't match.
-{% endif %}
+{% extends "base.html" %}
 
-<form method="post" action=".">
-	<table>
-		<tr>
-			<td>Username: </td>
-			<td><input type="text" name="username"></td>
-		</tr>
-		<tr>
-			<td>Password: </td>
-			<td><input type="password" name="psk1"></td>
-		</tr>
-		<tr>
-			<td>Repeat: </td>
-			<td><input type="password" name="psk2"></td>
-		</tr>
-	</table>
+{% block hat %}
+{% endblock %}
 
-	<input type="submit" value="login" />
-</form>
+{% block sidebar %}
+{% endblock %}
+
+{% block content %}
+
+	{% if result == 'false' %}
+	<h5>Passwords didn't match.</h5>
+	{% elif result == 'user' %}
+	<h5>There is user with such name. Choose another.</h5>
+	{% endif %}
+
+	<form method="post" action=".">
+		<table>
+			<tr>
+				<td><h4>Username:</h4></td>
+				<td><input type="text" name="username"></td>
+			</tr>
+			<tr>
+				<td><h4>Password:</h4></td>
+				<td><input type="password" name="psk1"></td>
+			</tr>
+			<tr>
+				<td><h4>Repeat:</h4></td>
+				<td><input type="password" name="psk2"></td>
+			</tr>
+		</table>
+
+		<br>
+		<br>
+			<input type="submit" value="Register" class="btn btn-warning btn-large"/>
+	</form>
+
+{% endblock %}
