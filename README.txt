@@ -1,5 +1,16 @@
 
 Python: RSS Reader
+https://github.com/kramar42/pyrss
+
+Для портирование на другой помпьютер нужно:
+	django_1.4.1
+	sqlite_2.8.17
+
+	в файле setting.py изменить переменные на локальные значения:
+	    :62 PATH_TO_PYRSS
+	    :86 TEMPLATE_DIRS
+
+cd pyrss; ./manage.py runserver
 
 Страница логина:
     localhost:8000/

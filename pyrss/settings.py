@@ -59,8 +59,9 @@ MEDIA_URL = ''
 # Examples: "http://foo.com/media/", "/media/".
 #ADMIN_MEDIA_PREFIX = '/media/'
 
-STATICFILES_DIRS = (os.path.join('/home/kramar/code/python/pyrss/pyrss', 'rss', 'static'),)
+PATH_TO_PYRSS = '/home/kramar/code/pyton/pyrss'
 
+STATICFILES_DIRS = (os.path.join(PATH_TO_PYRSS, 'pyrss', 'rss', 'static'),)
 STATIC_URL = '/static/'
 
 # Make this unique, and don't share it with anybody.

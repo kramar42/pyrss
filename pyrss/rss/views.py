@@ -1,6 +1,5 @@
 
 from django.shortcuts import HttpResponse, render_to_response, redirect
-#from django.shortcuts import render
 
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
@@ -15,7 +14,6 @@ import feedparser
 import os
 
 from rss.models import Feed, Entry
-#from rss.forms import LoginForm
 
 
 def login_view(request):
