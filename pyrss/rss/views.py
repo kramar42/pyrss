@@ -174,7 +174,7 @@ def add_feed(request):
     except AttributeError:
         # Display warning message
         return render_to_response('message.html', {'message': \
-            'Wrong feed URL.'})
+            'Wrong feed URL or connection Error.'})
 
     # Time field in Feed
     time = datetime.now()
@@ -337,6 +337,11 @@ def __update_feed(feed_obj):
     url = feed_obj.url
     feed = feedparser.parse(url)
 
+    try:
+        feed.feed.title
+    except AttributeError:
+        return
+
     # List of new entries in downloaded XML
     new_entries = feed.entries
     new_entries_titles = [entry.title for entry in new_entries]
@@ -406,16 +411,16 @@ def __add_entries(entries, feed):
             # If bad link or entry name
             try:
                 urlretrieve(entry.link, entry_name)
-            except IOError:
+
+                entry_file = open(entry_name)
+                entry_file = File(entry_file)
+
+                entry_obj = Entry(title=entry.title, \
+                    description=entry.description, \
+                    entry=entry_file, feed=feed)
+                entry_obj.save()
+
+                os.remove(entry_name)
+            except:
             # Go to next entry
                 continue
-
-            entry_file = open(entry_name)
-            entry_file = File(entry_file)
-
-            entry_obj = Entry(title=entry.title, \
-                description=entry.description, \
-                entry=entry_file, feed=feed)
-            entry_obj.save()
-
-            os.remove(entry_name)
