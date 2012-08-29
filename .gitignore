@@ -7,3 +7,7 @@ pyrss/entries/*
 
 # sqlite3 database
 pyrss/pyrss
+
+# Sublime Text 2 project files
+pyrss.sublime-project
+pyrss.sublime-workspace

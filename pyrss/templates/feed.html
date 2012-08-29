@@ -12,6 +12,7 @@
 	<ul>
 		{% for entry in entries %}
 		<li><a href="/entry/{{ entry.id }}">{{entry.title}}</a></li>
+		{{ entry.description }}
 		{% endfor %}
 	</ul>
 	{% else %}

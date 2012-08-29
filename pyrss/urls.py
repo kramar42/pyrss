@@ -13,4 +13,5 @@ urlpatterns = patterns('',
     url(r'^entry/(?P<entry_id>\d+)/$', 'rss.views.entry'),
 
     url(r'^update_feed/(?P<feed_id>\d+)/$', 'rss.views.update_feed'),
+    url(r'^delete_feed/(?P<feed_id>\d+)/$', 'rss.views.delete_feed'),
 )

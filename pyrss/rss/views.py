@@ -81,9 +81,9 @@ def add_feed(request):
 
     Then calculate Feed's
         Title, URL, Time, Feed, User fields
-    and create Feed object.
+    and create (& save) Feed object.
 
-
+    Add entries.
     """
 
     try:
@@ -105,34 +105,12 @@ def add_feed(request):
     # Time field in Feed
     time = datetime.now()
 
-    # create Feed and save it
+    # Create Feed and save it
     feed_obj = Feed(title=title, url=url, time=time, \
         user=request.user)
     feed_obj.save()
 
-    for entry in feed.entries:
-        try:
-            Entry.objects.get(title=entry.title)
-            continue
-        except Entry.DoesNotExist:
-            pass
-
-        # entry name to save
-        entry_name = entry.title + '.html'
-        urlretrieve(entry.link, entry_name)
-
-        # Entry file field
-        entry_file = open(entry_name)
-        entry_file = File(entry_file)
-
-        # create and save entry object
-        entry_obj = Entry(title=entry.title, \
-            description=entry.description, \
-            entry=entry_file, feed=feed_obj)
-        entry_obj.save()
-
-        # remove tmp entry file
-        os.remove(entry_name)
+    __add_entries(feed.entries, feed_obj)
 
     return redirect('/feeds')
 
@@ -162,4 +140,71 @@ def entry(request, entry_id):
 
 @login_required
 def update_feed(request, feed_id):
-    pass
+    try:
+        feed_obj = Feed.objects.get(id=feed_id)
+    except KeyError:
+        return render_to_response('message.html', \
+            {'message': 'There is no such feed.'})
+
+    url = feed_obj.url
+    feed = feedparser.parse(url)
+
+    new_entries = feed.entries
+    new_entries_titles = [entry.title for entry in new_entries]
+
+    old_entries = Entry.objects.filter(feed=feed_obj)
+    old_entries_titles = [entry.title for entry in old_entries]
+
+    # Check what old entries arn't in new entries
+    # They will be deleted
+    for entry_title in old_entries_titles:
+        if entry_title not in new_entries_titles:
+            Entry.objects.get(title=entry_title, feed=feed_obj).delete()
+
+    # Add all new entries
+    __add_entries(new_entries, feed_obj)
+    return redirect('/feeds')
+
+
+@login_required
+def delete_feed(request, feed_id):
+    Feed.objects.get(id=feed_id).delete()
+    return redirect('/feeds')
+
+
+def __add_entries(entries, feed):
+    for entry in entries:
+        try:
+            # If there is entry with such title in this feed
+            Entry.objects.get(title=entry.title, feed=feed)
+            continue
+        except Entry.DoesNotExist:
+            pass
+
+        # Try to find another entries with such title
+        e = Entry.objects.filter(title=entry.title)
+        # If found
+        if len(e) != 0:
+            e = e[0]
+            # Copy all containing
+            entry_obj = Entry(title=e.title, \
+                description=e.description, \
+                entry=e.entry, feed=feed)
+            entry_obj.save()
+        # Or create new Entry from scratch
+        else:
+            entry_name = entry.title + '.html'
+            try:
+                urlretrieve(entry.link, entry_name)
+            except IOError:
+                continue
+
+            entry_file = open(entry_name)
+            entry_file = File(entry_file)
+
+            entry_obj = Entry(title=entry.title, \
+                description=entry.description, \
+                entry=entry_file, feed=feed)
+            entry_obj.save()
+
+            os.remove(entry_name)
