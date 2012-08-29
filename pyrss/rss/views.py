@@ -8,7 +8,7 @@ from django.contrib.auth.models import User
 from django.core.files import File
 
 from urllib import urlretrieve
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import feedparser
 import os
@@ -65,8 +65,9 @@ def logout_view(request):
 
 @login_required
 def feeds(request):
-    feeds = Feed.objects.filter(user=request.user)
+    __time_update(request.user)
 
+    feeds = Feed.objects.filter(user=request.user)
     return render_to_response('feeds.html', {'feeds': feeds})
 
 
@@ -85,6 +86,7 @@ def add_feed(request):
 
     Add entries.
     """
+    __time_update(request.user)
 
     try:
         url = request.POST['url']
@@ -117,6 +119,8 @@ def add_feed(request):
 
 @login_required
 def feed(request, feed_id):
+    __time_update(request.user)
+
     try:
         feed = Feed.objects.get(user=request.user, id=feed_id)
         title = feed.title
@@ -129,6 +133,8 @@ def feed(request, feed_id):
 
 @login_required
 def entry(request, entry_id):
+    __time_update(request.user)
+
     try:
         entry = Entry.objects.get(id=entry_id)
         entry = entry.entry.read()
@@ -140,34 +146,22 @@ def entry(request, entry_id):
 
 @login_required
 def update_feed(request, feed_id):
+    __time_update(request.user)
+
     try:
-        feed_obj = Feed.objects.get(id=feed_id)
+        feed = Feed.objects.get(id=feed_id)
     except KeyError:
         return render_to_response('message.html', \
             {'message': 'There is no such feed.'})
 
-    url = feed_obj.url
-    feed = feedparser.parse(url)
-
-    new_entries = feed.entries
-    new_entries_titles = [entry.title for entry in new_entries]
-
-    old_entries = Entry.objects.filter(feed=feed_obj)
-    old_entries_titles = [entry.title for entry in old_entries]
-
-    # Check what old entries arn't in new entries
-    # They will be deleted
-    for entry_title in old_entries_titles:
-        if entry_title not in new_entries_titles:
-            Entry.objects.get(title=entry_title, feed=feed_obj).delete()
-
-    # Add all new entries
-    __add_entries(new_entries, feed_obj)
+    __update_feed(feed)
     return redirect('/feeds')
 
 
 @login_required
 def modify_feed(request, feed_id):
+    __time_update(request.user)
+
     feed = Feed.objects.get(id=feed_id)
 
     try:
@@ -185,8 +179,40 @@ def modify_feed(request, feed_id):
 
 @login_required
 def delete_feed(request, feed_id):
+    __time_update(request.user)
+
     Feed.objects.get(id=feed_id).delete()
     return redirect('/feeds')
+
+
+def __update_feed(feed_obj):
+    url = feed_obj.url
+    feed = feedparser.parse(url)
+
+    new_entries = feed.entries
+    new_entries_titles = [entry.title for entry in new_entries]
+
+    old_entries = Entry.objects.filter(feed=feed_obj)
+    old_entries_titles = [entry.title for entry in old_entries]
+
+    # Check what old entries arn't in new entries
+    # They will be deleted
+    for entry_title in old_entries_titles:
+        if entry_title not in new_entries_titles:
+            Entry.objects.get(title=entry_title, feed=feed_obj).delete()
+
+    # Add all new entries
+    __add_entries(new_entries, feed_obj)
+
+    feed_obj.time = datetime.now()
+    feed_obj.save()
+
+
+def __time_update(user):
+    feeds = Feed.objects.filter(user=user)
+    for feed in feeds:
+        if (datetime.now() - feed.time) > timedelta(0, 300, 0):
+            __update_feed(feed)
 
 
 def __add_entries(entries, feed):

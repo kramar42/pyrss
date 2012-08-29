@@ -10,7 +10,7 @@ class Feed(models.Model):
     # For checking equality of feeds
     url = models.CharField(max_length=100)
     # For checking time to refresh of feed
-    time = models.DateField()
+    time = models.DateTimeField()
 
     # User foreign key
     user = models.ForeignKey(User)
