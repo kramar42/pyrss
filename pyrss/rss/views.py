@@ -20,6 +20,7 @@ def login_view(request):
     try:
         # If we were redirected from another page
         next = request.GET['next']
+        # Print message
         return render_to_response('login.html', {'next': next})
     except:
         pass
@@ -52,11 +53,16 @@ def register_view(request):
         psk2 = request.POST['psk2']
 
         if psk1 == psk2:
-            # Create new User, authenticate and login
-            User.objects.create_user(name, '', psk1)
-            user = authenticate(username=name, password=psk1)
-            login(request, user)
-            return redirect('/feeds')
+            try:
+                # Create new User, authenticate and login
+                User.objects.create_user(name, '', psk1)
+                user = authenticate(username=name, password=psk1)
+                login(request, user)
+
+                return redirect('/feeds')
+            except:
+                return render_to_response('message.html', {'message': \
+                    'There are user with such name. Choose another.'})
         else:
             # Passwords veren't equal
             return render_to_response('register.html', {'result': 'false'})
@@ -98,19 +104,28 @@ def add_feed(request):
 
     try:
         url = request.POST['url']
+        if not url.startswith('http://'):
+            url = 'http://' + url
     except KeyError:
         return render_to_response('add_feed.html')
 
     try:
-        Feed.objects.get(url=url)
-        return render_to_response('message.html', {'message': 'There is such feed'})
+        Feed.objects.get(url=url, user=request.user)
+        return render_to_response('message.html', {'message': \
+            'There is already such feed'})
     except Feed.DoesNotExist:
         pass
 
     feed = feedparser.parse(url)
 
-    # Title field in Feed
-    title = feed.feed.title
+    # If were errors loading XML
+    try:
+        # Title field in Feed
+        title = feed.feed.title
+    except AttributeError:
+        # Display warning message
+        return render_to_response('message.html', {'message': \
+            'Wrong feed URL.'})
 
     # Time field in Feed
     time = datetime.now()
@@ -145,7 +160,12 @@ def entry(request, entry_id):
 
     try:
         entry = Entry.objects.get(id=entry_id)
-        entry = entry.entry.read()
+        feed = entry.feed
+
+        if feed.user == request.user:
+            entry = entry.entry.read()
+        else:
+            entry = 'false'
     except:
         entry = 'false'
 
@@ -157,8 +177,8 @@ def update_feed(request, feed_id):
     __time_update(request.user)
 
     try:
-        feed = Feed.objects.get(id=feed_id)
-    except KeyError:
+        feed = Feed.objects.get(id=feed_id, user=request.user)
+    except Feed.DoesNotExist:
         return render_to_response('message.html', \
             {'message': 'There is no such feed.'})
 
@@ -170,8 +190,13 @@ def update_feed(request, feed_id):
 def modify_feed(request, feed_id):
     __time_update(request.user)
 
-    feed = Feed.objects.get(id=feed_id)
+    try:
+        feed = Feed.objects.get(id=feed_id, user=request.user)
+    except KeyError:
+        return render_to_response('message.html', \
+            {'message': 'There is no such feed.'})
 
+    # Try to get data from form & update feed
     try:
         title = request.POST['title']
         url = request.POST['url']
@@ -181,6 +206,7 @@ def modify_feed(request, feed_id):
 
         feed.save()
         return redirect('/feeds')
+    # Or display new form, filled with current feed values
     except KeyError:
         return render_to_response('modify_feed.html', {'feed': feed})
 
@@ -189,7 +215,11 @@ def modify_feed(request, feed_id):
 def delete_feed(request, feed_id):
     __time_update(request.user)
 
-    Feed.objects.get(id=feed_id).delete()
+    try:
+        Feed.objects.get(id=feed_id, user=request.user).delete()
+    except:
+        pass
+
     return redirect('/feeds')
 
 
@@ -197,9 +227,11 @@ def __update_feed(feed_obj):
     url = feed_obj.url
     feed = feedparser.parse(url)
 
+    # List of new entries in downloaded XML
     new_entries = feed.entries
     new_entries_titles = [entry.title for entry in new_entries]
 
+    # List of current entries in database
     old_entries = Entry.objects.filter(feed=feed_obj)
     old_entries_titles = [entry.title for entry in old_entries]
 
@@ -212,13 +244,16 @@ def __update_feed(feed_obj):
     # Add all new entries
     __add_entries(new_entries, feed_obj)
 
+    # Update time and save
     feed_obj.time = datetime.now()
     feed_obj.save()
 
 
 def __time_update(user):
     feeds = Feed.objects.filter(user=user)
+
     for feed in feeds:
+        # Last time updated more than 5 minutes ago
         if (datetime.now() - feed.time) > timedelta(0, 300, 0):
             __update_feed(feed)
 
@@ -245,9 +280,11 @@ def __add_entries(entries, feed):
         # Or create new Entry from scratch
         else:
             entry_name = entry.title + '.html'
+            # If bad link or entry name
             try:
                 urlretrieve(entry.link, entry_name)
             except IOError:
+            # Go to next entry
                 continue
 
             entry_file = open(entry_name)
