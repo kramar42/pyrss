@@ -167,6 +167,23 @@ def update_feed(request, feed_id):
 
 
 @login_required
+def modify_feed(request, feed_id):
+    feed = Feed.objects.get(id=feed_id)
+
+    try:
+        title = request.POST['title']
+        url = request.POST['url']
+
+        feed.title = title
+        feed.url = url
+
+        feed.save()
+        return redirect('/feeds')
+    except KeyError:
+        return render_to_response('modify_feed.html', {'feed': feed})
+
+
+@login_required
 def delete_feed(request, feed_id):
     Feed.objects.get(id=feed_id).delete()
     return redirect('/feeds')

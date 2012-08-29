@@ -1,0 +1,13 @@
+
+{% extends "base.html" %}
+
+{% block content %}
+	<form method="post" action=".">
+		<input type="text" name="title" size="40" value="{{ feed.title }}"> <br>
+		<input type="text" name="url" size="40" value="{{ feed.url }}"> <br>
+		Time: {{ feed.time }} <br>
+		User: {{ feed.user }} <br>
+
+		<input type="submit" value="Save">
+	</form>
+{% endblock %}

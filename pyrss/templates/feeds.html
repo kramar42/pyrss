@@ -7,6 +7,7 @@
 	{% for feed in feeds %}
 	<li><a href="/feed/{{ feed.id }}/">{{feed.title}}</a>
 		<a href="/update_feed/{{ feed.id }}/">Update</a>
+		<a href="/modify_feed/{{ feed.id }}/">Modify</a>
 		<a href="/delete_feed/{{ feed.id }}/">Delete</a>
 	</li>
 	{% endfor %}
