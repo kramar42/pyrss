@@ -18,6 +18,7 @@ from rss.models import Feed, Entry
 
 def login_view(request):
     try:
+        # If we were redirected from another page
         next = request.GET['next']
         return render_to_response('login.html', {'next': next})
     except:
@@ -30,13 +31,17 @@ def login_view(request):
 
         if user is not None:
             if user.is_active:
+                # All is cool
                 login(request, user)
                 return redirect('/feeds')
             else:
+                # User is disabled
                 return render_to_response('login.html', {'disabled': 'true'})
         else:
+            # Invalid user
             return render_to_response('login.html', {'invalid': 'true'})
     except KeyError:
+        # Or just display the login
         return render_to_response('login.html')
 
 
@@ -47,13 +52,16 @@ def register_view(request):
         psk2 = request.POST['psk2']
 
         if psk1 == psk2:
+            # Create new User, authenticate and login
             User.objects.create_user(name, '', psk1)
             user = authenticate(username=name, password=psk1)
             login(request, user)
             return redirect('/feeds')
         else:
+            # Passwords veren't equal
             return render_to_response('register.html', {'result': 'false'})
     except KeyError:
+        # Or display simple register page
         return render_to_response('register.html')
 
 
